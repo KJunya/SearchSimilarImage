@@ -1,112 +1,132 @@
+#!/usr/bin/env python
 import os
-import shutil
 import sys
-import glob
-from PIL import Image
+import myfd		#my file directory manipulator module in ~/bin
+import mysi		#my similar image module in ~/bin
+
 
 argv = sys.argv
 argc = len(argv)
+cwd = os.getcwd() + '/'	#get current working directory
 
-#FUNCTIONS--------------------------
-#print usage------------------------
+
+#print usage -----------------------------------------------------------------------
 def usage():
-	print "usage: $ python %s {srcDir} {imgfile}" % argv[0]
-	print " srcDir  - source directory of images"
-	print " imgfile - image you want to search for"
-
-#get hash value----------------------
-def hashVal(img, crushS = 8):					#image, crush size
-	cpImage = img.copy()			        	#copy image
-	cpImage = cpImage.resize((crushS+1, crushS), Image.ANTIALIAS)	#resize image
-	cpImage = cpImage.convert("L")			#convert to monochrome
-
-	#calculata hash value
-	hashVal = 0				#hash value
-	loopC = 0				#loop count
-	for x in range(crushS):
-		for y in range(crushS):		#if pixel(x, y) is brighter than the next pixel
-			if cpImage.getpixel((x, y)) > cpImage.getpixel((x+1, y)):	#set 1 to hashVal`s bit'
-				hashVal += (1 << loopC)
-			loopC += 1
+	print "usage: $ python %s {--source} file/dir... {[-s, --search] file/dir...} {-f filter}" % argv[0].replace("/Users/junya 1/bin/", "")
+	print "	finds similar image of file or directories"
+	print "	--source : source files or directories"
+	print "	-s, --search : search files or directories"
+	print "	-f, --filter : similarity filter value"
 	
-	return hashVal
-		
-#MAIN --------------------------------
-srchImgList = []	#empty searh image list
+#get arguments -------------------------------------------------------------------
+def argumentCheck( argc, argv ):
+	srcList = []		#source list
+	srcImgFileList = [] #souce image file list
+	srchList = []		#search list
+	srchImgFileList = [] #search image list
+	filterVal = .88	#filter value
 
-#check argc
-if argc == 1:
-	srcDir = "./"	#set source directory to current directory
-if argc > 1:
-	if argv[1] == "-h" or argv[1] == "--help":
+	#check number of arguments
+	if argc < 2:
+		print "missing arguments"
+		return ([], [], -1)	#return error value
+	
+	#check for help prompt
+	if argv[1] in ["-h", "--help"]:
+		return([], [], -1)
+	
+	i = 1
+	while i < argc:
+		if argv[i] in ["-f", "--filter"]:		#set filter value
+			i += 1
+			if argv[i].replace(".", "", 1).isdigit():
+				filterVal = float(argv[i])
+		elif argv[i] in ["-s", "--search"]:		#set search list
+			i += 1
+			while i < argc and not argv[i].startswith('-'):
+				print argv[i]
+				srchList.append(argv[i])
+				i += 1
+			continue
+		elif argv[i] == "--source":	#set source list
+			i += 1
+			while i < argc and not argv[i].startswith('-'):
+				srcList.append(argv[i])
+				i += 1
+			continue
+		elif not argv[i].startswith('-'):
+			while i < argc and not argv[i].startswith('-'):
+				srcList.append(argv[i])
+				i += 1
+			continue
+		else:
+			print "invalid argument"
+			usage()
+			quit()
+		i += 1
+	#end of while
+	
+	#define function that gets image file form srcList
+	def imgInList( aList ):
+		imgList = []	#image file only list
+		for src in aList:
+			if not cwd in src:
+				src = cwd + src
+			if os.path.isfile(src) and myfd.isImageFile(src):
+				imgList.append(src)
+			elif os.path.isdir(src):
+				imgList.extend(myfd.getImgList(src))
+		return imgList
+	
+	#get image files for each lists
+	srcImgFileList = imgInList(srcList)
+	srchImgFileList = imgInList(srchList)
+	
+	return (srcImgFileList, srchImgFileList, filterVal)
+
+#main function for command line --------------------------------------------------
+def main():
+	srcImgFileList = []		#source image file list
+	srchImgFileList = []	#search image file list
+	simImgFileLists = []		#similar image list
+	filterVal = 0				#filter value
+	
+	#check arguments
+	srcImgFileList, srchImgFileList, filterVal = argumentCheck(argc, argv)
+	if len(srcImgFileList) == 0:
+		print "source images are messing"
 		usage()
 		quit()
-	srcDir = argv[1] #set source directory
-	if not srcDir.endswith('/'):
-		srcDir += '/'
-if argc == 3:
-	srchImg = argv[2]	#set search image name
-	srchImgList.append(srchImg)	#append srchImg to srchImgList
-
-#image extention list
-imgExts = [".jpg", ".png", ".jpeg", ".gif", ".tiff", ".bmp", ".ppm"]
-
-#empty image list
-imgList = []
-
-#image file search loop---------------------
-files = glob.glob(srcDir + "*.*")
-for file in files:
-	#check image file in srcDir
-	fileName, ext = os.path.splitext(file)
-	ext = ext.lower()
-	if ext in imgExts:
-		imgList.append(file)	#add image to list
-
-print str(len(imgList)) + " images found in " + srcDir
-if len(imgList) == 0:			#quit program if no image
-	quit()
-
-if argc < 3:				#if srchImg is not set
-	srchImgList = imgList		#set srchImgList to images in imgList
-
-checkImgCount = len(imgList) - 1		#exclude img
-#search similar images in imgList-----------
-for imgfile in srchImgList:
-	simCount = 0					#count similar image
-	imgCount = 0					#count checked image
-	img = Image.open(imgfile)			#open img
-	pureImgName = imgfile.replace(srcDir, "")	#imgfile name without directory path
-	print "checking " + pureImgName + "-------------------------"
-	imgHash = hashVal(img)				#get hash value of img
-
-	for img2file in imgList:
-		if img2file == imgfile:
-			continue			#skip comparasion if same file
-		img2 = Image.open(img2file)		#open img2
-		pureImg2Name = img2file.replace(srcDir, "")	#img2file name without directory path
-		img2Hash = hashVal(img2)		#get hash value of img2
-		imgCount += 1
+	elif filterVal < 0.0 or filterVal > 1.0:
+		print "invalid filter value"
+		usage()
+		quit()
 		
-		#Show status
-		status = 100 * imgCount/checkImgCount
-		sys.stdout.write("\r%3d%% looking at %-50s" %(status, pureImg2Name))
-		if status >= 100:
-			sys.stdout.write("\r%3d%% search ended%-50s " %(status, ""))
-		sys.stdout.flush()	
+	if len(srchImgFileList) == 0:
+		srchImgFileList = srcImgFileList
+	
+	#search for similar images
+	print "searching " + str(len(srchImgFileList)) + " images from " + str(len(srcImgFileList)) + " images"
+	simImgFileLists = mysi.getSimImgLists(srcImgFileList, srchImgFileList, {}, filterVal)
 
-		#Check same bits
-		difBits = imgHash ^ img2Hash 			#get difference of bit
-		sameBitCount = 64 - bin(difBits).count("1")  	#count same bits
+	if len(simImgFileLists) == 0:
+		print "no similar images found"
+		quit()
 
-		#Check similarity
-		if sameBitCount >= 64*0.8 :			#if sameBitCount were more than 80% of 64
-			sameBitPercent = 100 * sameBitCount/64
-			print pureImg2Name + " looks %3d%% similar" % sameBitPercent	#img2 is similar to img
-			simCount += 1;
-		#end of checking similarity of imgfile and img2file--------
-		
-	print "\n" + str(simCount) + " images similar to " + pureImgName
-	#end of searching similar image of imgfile-----------
-
-#end of searching similar images-----------------
+	#make group directory
+	count = 0
+	for simImgFileList in simImgFileLists:
+		groupDistList = []	#check created group dir path
+		for imgFile in simImgFileList:
+			imgPath = myfd.getPathAndPureName(imgFile)[0]
+			#check if group dir has already been created
+			if imgFile in srcImgFileList and not imgPath in groupDistList:
+				groupDistList.append(imgPath)
+				myfd.makeGroup(imgPath, simImgFileList, "simImg", False)
+				print "created simImg" + str(count)
+				count +=  1
+				
+				
+#MAIN ====================================================
+if __name__ == "__main__":
+	main()
