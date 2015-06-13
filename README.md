@@ -37,3 +37,6 @@ usage: $ python srchSimilarImage.py {--source} srcpath/file1 {srcpath/file2 ...}
 ## Reference
 The algorithm for searching image is done by comparing Difference Hash; produced by the image file.
 Refered website -> http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html
+
+## Author
+KJunya
