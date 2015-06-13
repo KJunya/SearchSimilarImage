@@ -12,7 +12,7 @@ cwd = os.getcwd() + '/'	#get current working directory
 
 #print usage -----------------------------------------------------------------------
 def usage():
-	print "usage: $ python %s {--source} file/dir... {[-s, --search] file/dir...} {-f filter}" % argv[0].replace("/Users/junya 1/bin/", "")
+	print "usage: $ python %s {--source} file/dir... {[-s, --search] file/dir...} {-f filter}" % argv[0]
 	print "	finds similar image of file or directories"
 	print "	--source : source files or directories"
 	print "	-s, --search : search files or directories"
