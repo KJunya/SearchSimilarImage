@@ -3,20 +3,14 @@ SearchSimilarImage
 
 ## Description
 srchSimilarImage.py - A python script that searches similar image file in specified directory or image file.  
-					  It will copy each similar image groups and creates group directories in source directory.  
-					  指定ディレクトリまたは画像ファイルから類似画像を検出するpythonスクリプトです．  
-					  sourceディレクトリに検出した各類似画像の組のディレクトリを作成します．  
-myfd.py - A Directory/File manipulater module.  
-		  ディレクトリやファイルを取り扱うモジュール.  
+					  It will copy each similar image groups and creates group directories in source directory.    
+myfd.py  - A Directory/File manipulater module.  
 mylog.py - A simple log file handler module. **It's very primitive!**  
-		   ログを管理するモジュール．**原始的です!**  
-mysi.py - A similar image searcher module.  
-		  類似画像検出モジュール.  
+mysi.py  - A similar image searcher module.  
 
 ## Requirement
 Python Imaging Library (PIL or Pillow).  
 Please change global variable "MY\__LOGFILE" to your log file path/name in each "my"module; mylog.py, myfd.py.  
-"my"module; mylog.py, myfd.py に記載されているグローバル変数 "MY\__LOGFILE" の値を好みのパス/ファイル名に設定してください．  
 
 ## Usage
 ```
