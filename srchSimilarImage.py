@@ -41,21 +41,24 @@ def argumentCheck( argc, argv ):
 			i += 1
 			if argv[i].replace(".", "", 1).isdigit():
 				filterVal = float(argv[i])
+				print "filter value = " + str(filterVal)
 		elif argv[i] in ["-s", "--search"]:		#set search list
 			i += 1
 			while i < argc and not argv[i].startswith('-'):
-				print argv[i]
+				print "search " + argv[i]
 				srchList.append(argv[i])
 				i += 1
 			continue
 		elif argv[i] == "--source":	#set source list
 			i += 1
 			while i < argc and not argv[i].startswith('-'):
+				print "source " + argv[i]
 				srcList.append(argv[i])
 				i += 1
 			continue
 		elif not argv[i].startswith('-'):
 			while i < argc and not argv[i].startswith('-'):
+				print "source " + argv[i]
 				srcList.append(argv[i])
 				i += 1
 			continue

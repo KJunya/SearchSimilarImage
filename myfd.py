@@ -78,7 +78,6 @@ def getImgList(srcDir):
 	files = []
 	files = getFiles(dirWithDash(srcDir))
 
-	print "hi"
 	for file in files:
 		if isImageFile(file):
 			imgList.append(file)
