@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-import sys
+import sys  #damn
 import myfd		#my file directory manipulator module in ~/bin
 import mysi		#my similar image module in ~/bin
 
